@@ -74,6 +74,9 @@ That's it! 🎉 All the complexity of multiprocessing, error & warning reports, 
 - **Medical Image Optimized**: Designed for CT, MRI, PET, SPECT, X-Ray, Ultrasound, and other medical imaging modalities.
 - **Dual Extraction Modes**: Both traditional IBSI-compliant radiomics (557 features) and deep learning features (ResNet50, VGG16, DenseNet121)
 
+For a complete list of all 557 features with their definitions, formulas, and IBSI compliance status, see the 
+**[PySERA Feature Definitions and Formula](https://github.com/radiuma-com/PySERA/blob/main/Documentations/PySERA_Feature_Definitions_and_Formula.pdf)** document.
+
 ## 🤖Deep Learning Feature Extraction
 
 PySERA supports advanced **deep learning-based** feature extraction alongside traditional radiomics, providing multiple pre-trained models for comprehensive feature representation. When using **extraction_mode="deep_feature"**, the categories parameter is automatically handled by the **deep learning model**. Deep features are extracted in 3D dimension by default for comprehensive volumetric analysis. All deep learning features are extracted specifically from the ROI regions defined by the mask and model outputs provide complementary feature representations to traditional radiomics.
