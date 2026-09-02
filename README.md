@@ -1,7 +1,3 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/radiuma-com/PySERA/main/Documentations/PySERA.png" alt="PySERA Logo" height="100" align="left">
-</div>
-
 # PySERA: Python-Based Standardized Extraction for Radiomics Analysis – Python Radiomics Script and Library
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
@@ -10,7 +6,11 @@
 
 **PySERA** (Python-based Standardized Extraction for Radiomics Analysis), published in "[PySERA](https://pypi.org/project/pysera/)"  is a comprehensive Python library for radiomics feature extraction from medical imaging data. It provides a **simple, single-function API** with built-in multiprocessing support, comprehensive report capabilities, and optimized performance through OOP architecture, RAM optimization, and CPU-efficient parallel processing. PySERA supports both **traditional handcrafted radiomics** (557  features including 487 IBSI-compliant, 60 diagnostic, and 10 moment-invariant features) and **deep learning-based feature extraction** using pre-trained models like ResNet50, VGG16, and DenseNet121.
 
-## 🔍 Table of Contents
+## 🔍 Table of Contents 
+- [🎥 YouTube Tutorials](#-youtube-tutorials)
+- [💻 Comprehensive Examples](#-comprehensive-examples)
+  - [📋 Handcrafted Example](#handcrafted-example)
+  - [🧠 Deep Learning Example](#-deep-learning-example)
 - [🧩IBSI (Image Biomarker Standardisation Initiative) Standardization-1.0](#IBSI-Standardization)
 - [✨Key Features](#key-features)
 - [🤖Deep Learning Feature Extraction](#deep-learning-feature-extraction)
@@ -43,6 +43,281 @@
 - [🙏Acknowledgment](#acknowledgment)
 - [📜License](#license)
 
+## 🎥 YouTube Tutorials
+
+Watch our comprehensive video tutorials on the official Radiuma YouTube channel:
+
+🔗 [Radiuma Software YouTube Channel](https://www.youtube.com/@Radiuma-software)
+
+Our tutorials cover a wide range of topics, including:
+- Getting started with PySERA
+- Handcrafted radiomics feature extraction
+- Deep learning radiomics feature extraction
+- Batch processing with multiple file formats
+- Advanced parameter configuration
+
+## 💻 Comprehensive Examples
+
+Below are two comprehensive examples demonstrating the full parameter configuration available in PySERA. You can customize these parameters based on your specific needs.
+
+### 📋Handcrafted Example
+
+```python
+import pysera 
+
+ibsi_params_dics = { 
+    "radiomics_DataType": "CT",                 # Image modality type
+                                                # options: "CT", "PET", "MRI", "OTHER"
+                                                # Determines modality-specific preprocessing defaults
+    
+    "radiomics_DiscType": "FBN",                # Discretization type for gray-level calculation
+                                                # options: "FBN" (Fixed Bin Numbers), "FBS" (Fixed Bin Size)
+    
+    "radiomics_isScale": 1,                     # Enable image resampling to isotropic voxels
+                                                # options: 0 (disable), 1 (enable resampling)
+    
+    "radiomics_VoxInterp": "linear",            # Interpolation method for image resampling
+                                                # options: "nearest", "linear", "bilinear", "trilinear",
+                                                # "tricubic-spline", "cubic", "bspline", "None"
+  
+    "radiomics_ROIInterp": "bilinear",          # Interpolation method for ROI/mask resampling
+                                                # options: "nearest", "linear", "bilinear", "trilinear",
+                                                # "tricubic-spline", "cubic", "bspline", "None"
+    
+    "radiomics_isotVoxSize": 2,                 # Isotropic voxel size for 3D resampling (in mm)
+                                                # Applied equally to X, Y, and Z dimensions
+    
+    "radiomics_isotVoxSize2D": 2,               # Voxel size for 2D resampling  
+                                                # Keeps Z dimension unchanged, rescales X and Y only
+    
+    "radiomics_isIsot2D": 0,                    # Resampling mode
+                                                # options: 0 (3D isotropic), 1 (2D isotropic)
+    
+    "radiomics_isGLround": 1,                   # Round voxel intensities to nearest integer
+                                                # options: 0 (disable), 1 (enable rounding)
+    
+    "radiomics_isReSegRng": 0,                  # Enable range-based re-segmentation
+                                                # options: 0 (disable), 1 (enable)
+    
+    "radiomics_isOutliers": 0,                  # Remove outlier intensities
+                                                # options: 0 (disable), 1 (enable)
+                                                # Removes voxels with intensities beyond ±3σ from mean
+    
+    "radiomics_isQuntzStat": 1,                 # Use quantized images for first-order statistics
+                                                # options: 0 (raw intensities), 1 (quantized images)
+    
+    "radiomics_ReSegIntrvl01": -1000,           # Lower bound for range re-segmentation
+                                                # Typical for CT: -1000 to -500 (remove air/background)
+    
+    "radiomics_ReSegIntrvl02": 400,             # Upper bound for range re-segmentation
+                                                # Typical for CT: 400 to 1000 (remove bone/artifacts)
+    
+    "radiomics_ROI_PV": 0.5,                    # Partial volume threshold for ROI binarization
+                                                # options: float number (0.0 to 1.0)
+    
+    "radiomics_qntz": "Lloyd",                  # Quantization strategy for fixed bin numbers
+                                                # options: "Uniform", "Lloyd"
+                                                # "Uniform": Equal width bins
+                                                # "Lloyd": Max-Lloyd quantization (adaptive bins)
+    
+    "radiomics_IVH_Type": 0,                    # Intensity-Volume Histogram type
+                                                # options: 0 (Definite - PET/CT), 1 (Arbitrary - MRI/SPECT),
+                                                # 2 (1000 bins), 3 (same as histogram)
+                                                # Affects how IVH features are computed
+    
+    "radiomics_IVH_DiscCont": 1,                # IVH continuity type
+                                                # options: 0 (Discrete - CT), 1 (Continuous - CT/PET for FBS)
+    
+    "radiomics_IVH_binSize": 2.0,               # Bin size for Intensity-Volume Histogram
+}
+
+result = pysera.process_batch(
+    # ===== REQUIRED PARAMETERS =====
+    image_input=r"Data\Nifti Images\CT\Images",               # Path to images. Insert the imaging data directory from your computer
+                                                            # Supports: single file or folder containing multiple images
+                                                            # Formats: NIfTI (.nii, .nii.gz), DICOM (.dcm), NRRD, NumPy arrays
+    
+    mask_input=r"Data\Nifti Images\CT\Masks",             # Path to masks. Insert the mask data directory from your computer
+                                                            # Must have same dimensions as corresponding image
+                                                            # File names must match image files for proper pairing
+    
+    output_path=r"C:\Users\AsemaN\Desktop\PySERA_Videos\results",                                # Directory where results will be saved
+                                                            # Creates an Excel file with features, parameters, and reports
+    
+    # ===== FEATURE EXTRACTION MODE =====
+    extraction_mode="handcrafted_feature",                  # Select which type of features you want to extract
+                                                            #   "handcrafted_feature" - Traditional IBSI-compliant radiomics (557 features)
+                                                            #   "deep_feature" - Deep learning features from pre-trained CNN models
+    
+    # ===== PERFORMANCE SETTINGS =====
+    num_workers="2",                                        # Number of CPU cores for parallel processing
+                                                            #   "auto" - Automatically uses 70% of available CPU cores
+                                                            #   "1", "2", "4", "8" - Specify exact number of cores to use
+    
+    apply_preprocessing=True,                             # Apply preprocessing to mask values
+                                                            #   True - Rounds mask array values to nearest integers
+                                                            #   False - Uses raw mask values without rounding
+    
+    enable_parallelism=True,                                # Enable or disable multi-core processing
+                                                            #   True - Parallel processing enabled (faster for multiple files)
+                                                            #   False - Single-core processing (slower but lower memory usage)
+    
+    # ===== ROI (Region of Interest) CONFIGURATION =====
+    min_roi_volume=10,                                       # Minimum volume threshold for ROIs (in voxels)
+                                                            #   Default: 10, Increase to filter out very small regions
+                                                            #   Set to 1 to include all ROIs regardless of size
+    
+    bin_size=25,                                            # Number of bins for texture analysis discretization
+                                                            #   Determines how many intensity levels the image is divided into
+                                                            #   Default: 25, Recommended range: 10-100
+    
+    roi_selection_mode="per_region",                        # Strategy for selecting ROIs to process
+                                                            # options: "per_Img", "per_region"
+                                                            #   "per_Img" - Selects top ROIs per image based on size
+                                                            #   "per_region" - Selects ROIs per label category
+
+    
+    roi_num=1,                                             # Number of ROIs to process from each image
+                                                            # options: integer number
+                                                            #   Default: 10
+    
+    # ===== FEATURE VALUE HANDLING =====
+    feature_value_mode="REAL_VALUE",                 # Strategy for handling NaN (Not a Number) values
+                                                            # options: "REAL_VALUE", "APPROXIMATE_VALUE"
+                                                            #   "REAL_VALUE" - Keeps NaN values when extraction fails
+                                                            #   "APPROXIMATE_VALUE" - Replaces NaN with substitute values
+    # ===== FEATURE SELECTION ===== 
+    categories="glcm, glrlm",                               # Feature categories to extract
+                                                            #   "diag" - Diagnostic features (image quality and metadata)
+                                                            #   "morph" - Morphological/shape features
+                                                            #   "stat" - First-order statistical features
+                                                            #   "glcm" - Gray-Level Co-occurrence Matrix texture
+                                                            #   "glrlm" - Gray-Level Run Length Matrix texture
+                                                            #   "glszm" - Gray-Level Size Zone Matrix texture
+                                                            #   "ngtdm" - Neighboring Gray-Tone Difference Matrix
+                                                            #   "ngldm" - Neighboring Gray-Level Dependence Matrix
+                                                            #   "mi" - Moment-invariant features
+                                                            #   You can combine: "glcm, glrlm, glszm"
+    
+    dimensions="3d",                              # Spatial dimensions for feature extraction
+                                                            # options: "1st", "2D", "2_5D", "3D"
+                                                            #   "1st" - First-order intensity-based features
+                                                            #   "2D" - Features extracted per 2D slice
+                                                            #   "2_5D" - Features aggregated across slices
+                                                            #   "3D" - Fully volumetric features
+                                                            #   You can combine: "1st, 2D" or "1st, 2_5D, 3D"
+  
+    aggregation_lesion=False,                               # Aggregate features across multiple ROIs
+                                                            # options: True, False
+                                                            #   False - Keep individual ROI features (default)
+                                                            #   True - Combine features from all ROIs
+    
+    # ===== LOGGING AND REPORTING ===== 
+    report="info",                                         # Level of detail in the log report
+                                                            # options: "all", "info", "warning", "error", "none"
+                                                            #   "all" - Full processing details (recommended for debugging)
+                                                            #   "info" - Essential information only
+                                                            #   "warning" - Warnings and errors only
+                                                            #   "error" - Errors only
+                                                            #   "none" - No reporting (quiet mode)
+
+    IBSI_based_parameters=ibsi_params_dics,                 # Advanced IBSI configuration dictionary
+)
+print(f"Processed {result['processed_files']} files")
+print(f"Total processing time: {result['processing_time']:.2f} seconds")
+
+```
+### 🧠 Deep Learning Example
+
+```python
+import pysera
+
+result = pysera.process_batch(
+    # ===== REQUIRED PARAMETERS =====
+    image_input=r"Data\Nifti Images\CT\Images",              # Path to images. Insert the imaging data directory from your computer
+                                                # Supports: single file or folder containing multiple images
+                                                # Formats: NIfTI (.nii, .nii.gz), DICOM (.dcm), NRRD, RT Structs, NumPy arrays
+    
+    mask_input=r"Data\Nifti Images\CT\Masks",              # Path to masks. Insert the mask data directory from your computer
+                                                # Must have same dimensions as corresponding image
+                                                # File names must match image files for proper pairing
+    
+    output_path=r"C:\Users\AsemaN\Desktop\PySERA_Videos\results",         # Directory where results will be saved
+                                                # Creates an Excel file with features, parameters, and reports
+    
+    # ===== FEATURE EXTRACTION MODE =====
+    extraction_mode="deep_feature",             # Select which type of features you want to extract
+                                                # options: "handcrafted_feature", "deep_feature"
+                                                #   "handcrafted_feature" - Traditional IBSI-compliant radiomics (557 features)
+                                                #   "deep_feature" - Deep learning features from pre-trained CNN models
+    
+    # ===== DEEP LEARNING MODEL SELECTION =====
+    deep_learning_model="vgg16",                # Select pre-trained CNN model for deep feature extraction
+                                                # options: "resnet50", "vgg16", "densenet121"
+                                                #   "resnet50" - 2048 features, 50 layers, balanced performance
+                                                #   "vgg16" - 512 features, 16 layers, strong hierarchical features
+                                                #   "densenet121" - 1024 features, 121 layers, efficient feature reuse
+    
+    # ===== PERFORMANCE SETTINGS =====
+    num_workers="4",                            # Number of CPU cores for parallel processing
+                                                # options: "auto", "1", "2", "4", "8", etc.
+                                                #   "auto" - Automatically uses 70% of available CPU cores
+                                                #   "1", "2", "4", "8" - Specify exact number of cores to use
+                                                #   Higher numbers = faster processing, more memory usage
+    
+    apply_preprocessing=False,                  # Apply preprocessing to mask values
+                                                # options: True, False
+                                                #   True - Rounds mask array values to nearest integers
+                                                #   False - Uses raw mask values without rounding
+    
+    enable_parallelism=True,                    # Enable or disable multi-core processing
+                                                # options: True, False
+                                                #   True - Parallel processing enabled (faster for multiple files)
+                                                #   False - Single-core processing (slower but lower memory usage)
+    
+    # ===== ROI (Region of Interest) CONFIGURATION =====
+    min_roi_volume=20,                          # Minimum volume threshold for ROIs (in voxels)
+                                                # options: integer number
+                                                #   ROIs smaller than this value are excluded from analysis
+                                                #   Default: 10, Increase to filter out very small regions
+    
+    roi_selection_mode="per_img",               # Strategy for selecting ROIs to process   
+                                                # options: "per_img", "per_region"
+                                                #   "per_img" - Selects top ROIs per image based on size
+                                                #     • Suitable for single or dominant lesions per scan
+                                                #   "per_region" - Selects ROIs per label category
+                                                #     • Suitable for multi-lesion or multi-label studies
+    
+    roi_num=10,                                 # Number of ROIs to process from each image
+                                                # options: integer number
+                                                #   Default: 10
+                                                #   For single lesion studies, set to 1
+                                                #   For multiple lesions, increase as needed
+    
+    # ===== FEATURE AGGREGATION =====
+    aggregation_lesion=False,                   # Aggregate features across multiple ROIs
+                                                # options: True, False
+                                                #   False - Keep individual ROI features (default)
+                                                #   True - Combine features from all ROIs:
+                                                #     • For deep features: Averages all features
+                                                #     • For morphological: Weighted averages
+                                                #     • For diagnostic: Selects from largest lesion
+                                                #     • For other features: Sums across ROIs
+    
+    # ===== LOGGING AND REPORTING =====
+    report="all",                               # Level of detail in the log report
+                                                # options: "all", "info", "warning", "error", "none"
+                                                #   "all" - Full processing details (recommended for debugging)
+                                                #   "info" - Essential information only
+                                                #   "warning" - Warnings and errors only
+                                                #   "error" - Errors only
+                                                #   "none" - No reporting (quiet mode)  
+)
+
+print(f"Processed {result['processed_files']} files")
+print(f"Total processing time: {result['processing_time']:.2f} seconds")
+```
+
 ## 🧩IBSI Standardization
 Both the script and library have been rigorously standardized based on **IBSI** (Image Biomarker Standardisation Initiative) Standardization 1.0. PySERA returns IBSI-compliant feature values that match the reference standard, ensuring reproducibility and comparability across studies.
 See the detailed evaluation and test cases here: [IBSI_Evaluation Folder](https://github.com/radiuma-com/PySERA/tree/main/IBSI_Evaluation)
@@ -73,9 +348,6 @@ That's it! 🎉 All the complexity of multiprocessing, error & warning reports, 
   - **10 moment-invariant features** (shape descriptors) 
 - **Medical Image Optimized**: Designed for CT, MRI, PET, SPECT, X-Ray, Ultrasound, and other medical imaging modalities.
 - **Dual Extraction Modes**: Both traditional IBSI-compliant radiomics (557 features) and deep learning features (ResNet50, VGG16, DenseNet121)
-
-For a complete list of all 557 features with their definitions, formulas, and IBSI compliance status, see the 
-**[PySERA Feature Definitions and Formula](https://github.com/radiuma-com/PySERA/blob/main/Documentations/PySERA_Feature_Definitions_and_Formula.pdf)** document.
 
 ## 🤖Deep Learning Feature Extraction
 
@@ -160,11 +432,6 @@ print(f"Processed {result['processed_files']} files")
 print(f"Total processing time: {result['processing_time']:.2f} seconds")
 ```
 
-> **🎥 Video Tutorial:** [PySERA: Extract Handcrafted Radiomics from Single & Multiple NIfTI Images](https://www.youtube.com/watch?v=4vEdSBLM5uA)
-> 
-> Watch our step-by-step tutorial demonstrating how to extract handcrafted radiomics features from NIfTI images using PySERA's simple API.
-
-
 ### 🤖Deep Features Extraction
 
 ### ⚠️ Additional Requirements for Deep Learning Models
@@ -176,8 +443,9 @@ Install the required packages using pip:
 ```bash
 pip install torch torchvision
 ```
+ 
 
-```python
+```python  
 import pysera
 
 # Process multiple files with 4 CPU cores
@@ -205,7 +473,7 @@ print(f"Processed {result['processed_files']} files")
 print(f"Total processing time: {result['processing_time']:.2f} seconds")
 ```
 
- 
+
 ## 🔧Advanced Configuration
 
 ```python
